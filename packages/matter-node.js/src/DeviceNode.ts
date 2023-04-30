@@ -76,7 +76,31 @@ class DeviceNode {
         deviceStorage.set("productid", productId);
 
         // Barebone implementation of the On/Off cluster
-        const onOffClusterServer = new ClusterServer(
+        const Light_onOffClusterServer = new ClusterServer(
+            OnOffCluster,
+            { lightingLevelControl: false },
+            { onOff: false }, // Off by default
+            OnOffClusterHandler()
+        );
+
+        // Barebone implementation of the On/Off cluster
+        const Plug_onOffClusterServer = new ClusterServer(
+            OnOffCluster,
+            { lightingLevelControl: false },
+            { onOff: false }, // Off by default
+            OnOffClusterHandler()
+        );
+
+        // Barebone implementation of the On/Off cluster
+        const Switch_onOffClusterServer = new ClusterServer(
+            OnOffCluster,
+            { lightingLevelControl: false },
+            { onOff: false }, // Off by default
+            OnOffClusterHandler()
+        );
+
+        // Barebone implementation of the On/Off cluster
+        const Sensor_onOffClusterServer = new ClusterServer(
             OnOffCluster,
             { lightingLevelControl: false },
             { onOff: false }, // Off by default
@@ -84,7 +108,16 @@ class DeviceNode {
         );
 
         // We listen to the attribute update to trigger an action. This could also have been done in the method invokations in the server.
-        onOffClusterServer.attributes.onOff.addListener(on => commandExecutor(on ? "on" : "off")?.());
+        Light_onOffClusterServer.attributes.onOff.addListener(on => commandExecutor(on ? "on" : "off")?.());
+
+        // We listen to the attribute update to trigger an action. This could also have been done in the method invokations in the server.
+        Switch_onOffClusterServer.attributes.onOff.addListener(on => commandExecutor(on ? "on" : "off")?.());
+
+        // We listen to the attribute update to trigger an action. This could also have been done in the method invokations in the server.
+        Plug_onOffClusterServer.attributes.onOff.addListener(on => commandExecutor(on ? "on" : "off")?.());
+
+        // We listen to the attribute update to trigger an action. This could also have been done in the method invokations in the server.
+        Sensor_onOffClusterServer.attributes.onOff.addListener(on => commandExecutor(on ? "on" : "off")?.());
 
         const secureChannelProtocol = new SecureChannelProtocol(
             await PaseServer.fromPin(passcode, { iterations: 1000, salt: Crypto.getRandomData(32) }),
@@ -191,9 +224,16 @@ class DeviceNode {
                         {},
                     )
                 ])
-                .addEndpoint(0x01, DEVICE.ON_OFF_LIGHT, [onOffClusterServer])
-                .addEndpoint(0x02, DEVICE.ON_OFF_LIGHT, [onOffClusterServer])
-                .addEndpoint(0x03, DEVICE.ON_OFF_LIGHT, [onOffClusterServer])
+                .addEndpoint(0x01, DEVICE.ON_OFF_LIGHT, [Light_onOffClusterServer])
+                                
+                // On/Off Plug-in Unit is a device that is capable of being switched
+                .addEndpoint(0x02, DEVICE.ON_OFF_PLUGIN_UNIT, [Plug_onOffClusterServer])   // On/Off Plug-in Unit is a device that is capable of being switched
+                
+                // On/Off Sensor is a measurement and sensing device that, when bound to 
+                // a lighting device such as a Dimmable Light, is capable of being used to switch the device on or off
+                .addEndpoint(0x03, DEVICE.ON_OFF_SENSOR, [Sensor_onOffClusterServer])
+                
+                .addEndpoint(0x04, DEVICE.ON_OFF_LIGHT_SWITCH, [Switch_onOffClusterServer])
             );
         await device.start();
 
