@@ -192,6 +192,8 @@ class DeviceNode {
                     )
                 ])
                 .addEndpoint(0x01, DEVICE.ON_OFF_LIGHT, [onOffClusterServer])
+                .addEndpoint(0x02, DEVICE.ON_OFF_LIGHT, [onOffClusterServer])
+                .addEndpoint(0x03, DEVICE.ON_OFF_LIGHT, [onOffClusterServer])
             );
         await device.start();
 
